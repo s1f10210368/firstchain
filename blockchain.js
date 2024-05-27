@@ -26,8 +26,17 @@ class Blockchain {
         return new Block ("01/01/2019", "GenesisBlock", "0");
     }
     // 1つ前のブロックのハッシュ値を取得するメソッド
-    getLatesBlock() {
+    getLatestBlock() {
         // chainは配列データのため-1をして値を取得
         return this.chain[this.chain.length - 1];
+    }
+    // ブロックを追加していくメソッド
+    addBlock(newBlock) {
+        // 1つ前のハッシュ値を取得し代入
+        newBlock.previousHash = this.getLatestBlock().hash;
+        // newBlockのハッシュ値を代入
+        newBlock.hash = newBlock.calculateHash();
+        // chain配列にpush
+        this.chain.push(newBlock);
     }
 }
