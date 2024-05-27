@@ -1,4 +1,9 @@
 const SHA256 = require('crypto-js/sha256');
+let originalCoin = new Blockchain();
+
+originalCoin.addBlock(new Block("06/02/2019", {SendCoinToA : 3}));
+originalCoin.addBlock(new Block("07/03/2019", {SendCoinToB : 8}));
+
 
 // ブロックを作成
 class Block {
