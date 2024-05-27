@@ -15,3 +15,10 @@ class Block {
         return SHA256(this.previousHash + this.timestamp + JSON.stringify(this.data)).toString();
     }
 }
+
+// Blockchainクラスを作成
+class Blockchain {
+    constructor() {
+        this.chain = [];
+    }
+}
