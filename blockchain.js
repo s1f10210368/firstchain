@@ -25,4 +25,9 @@ class Blockchain {
     createGenesisBlock(){
         return new Block ("01/01/2019", "GenesisBlock", "0");
     }
+    // 1つ前のブロックのハッシュ値を取得するメソッド
+    getLatesBlock() {
+        // chainは配列データのため-1をして値を取得
+        return this.chain[this.chain.length - 1];
+    }
 }
