@@ -19,6 +19,10 @@ class Block {
 // Blockchainクラスを作成
 class Blockchain {
     constructor() {
-        this.chain = [];
+        this.chain = [this.createGenesisBlock()];
+    }
+    // ジェネシスブロック(一番最初のブロック)を作成するメソッド
+    createGenesisBlock(){
+        return new Block ("01/01/2019", "GenesisBlock", "0");
     }
 }
