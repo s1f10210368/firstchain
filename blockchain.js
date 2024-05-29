@@ -1,5 +1,9 @@
 const SHA256 = require('crypto-js/sha256');
 
+// Fintech、サプライチェーン、仮想通貨以外(できれば)
+// プロトタイプ作成と同時に考える
+// 使用するプラットフォームについても考える、 Ethereumなどを使うことを考えておく
+
 // ブロックを作成
 class Block {
     constructor(timestamp, data, previousHash) {
