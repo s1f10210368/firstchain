@@ -43,6 +43,24 @@ class Blockchain {
         // chain配列にpush
         this.chain.push(newBlock);
     }
+    isChainValid() {
+        //STEP2 for文でループを回す記述を行う
+        for (let i = 1; i < this.chain.length; i++) {
+            //STEP3 currentBlockとpreviousBlockにそれぞれ値を代入
+            const currentBlock = this.chain[i];
+            const previousBlock = this.chain[i - 1];
+            //STEP4 現在のハッシュ値と、ハッシュを再度計算たものを比べ、値が変わっていないか確認
+            if (currentBlock.hash !== currentBlock.calculateHash()) {
+                return false;
+            }
+            //STEP5 currentBlock.previousHashとpreviousBlock.hashを比較し、値が違わないか確認
+            if (currentBlock.previousHash !== previousBlock.hash) {
+                return false;
+            }
+        }
+        //STEP6 trueを返す
+        return true;
+    }
 }
 
 let originalCoin = new Blockchain();
@@ -51,3 +69,6 @@ originalCoin.addBlock(new Block("06/02/2019", {SendCoinToA : 3}));
 originalCoin.addBlock(new Block("07/03/2019", {SendCoinToB : 8}));
 
 console.log(JSON.stringify(originalCoin, null, 2));
+
+// 改竄前の状態
+console.log('改ざんなしの状態:' + originalCoin.isChainValid());
