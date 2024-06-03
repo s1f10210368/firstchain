@@ -45,8 +45,8 @@ class Blockchain {
     }
     isChainValid() {
         for (let i = 1; i < this.chain.length; i++) {  // 最初のブロックはジェネシスブロックであり検証の必要がないため次のブロックから検証を開始
-            const currentBlock = this.chain[i];
-            const previousBlock = this.chain[i - 1];
+            const currentBlock = this.chain[i]; // 現在のブロック
+            const previousBlock = this.chain[i - 1]; // 1
             // 現在のハッシュ値と、ハッシュを再度計算たものを比べ、値が変わっていないか確認
             if (currentBlock.hash !== currentBlock.calculateHash()) {
                 return false;
