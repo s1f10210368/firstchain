@@ -12,11 +12,20 @@ class Block {
         this.data = data;
         this.previousHash = previousHash;
         this.hash = this.calculateHash();
+        this.nonce = 0; // NONCE(一度だけ使われる番号)、ブロックにNONCEの値を入れてこの値を変化させることでブロックの頭に0がくるハッシュ値を探す
     }
     // ハッシュ値を計算するためのメソッド
     // dataは配列データのためJSONを使用
     calculateHash() {
-        return SHA256(this.previousHash + this.timestamp + JSON.stringify(this.data)).toString();
+        return SHA256(this.previousHash + this.timestamp + JSON.stringify(this.data) + this.nonce).toString();
+    }
+    mineBlock() {
+        // ここではハッシュ値の頭に0が2つ来ることがマイニングの条件であるため以下のように記述
+        while(this.hash.substring(0, 2) !== '00') {
+            this.nonce++;
+            this.hash = this.calculateHash();
+        }
+        console.log("ブロックがマイニングされました : " + this.hash);
     }
 }
 
@@ -36,10 +45,7 @@ class Blockchain {
     }
     // ブロックを追加していくメソッド
     addBlock(newBlock) {
-        // 1つ前のハッシュ値を取得し代入
-        newBlock.previousHash = this.getLatestBlock().hash;
-        // newBlockのハッシュ値を代入
-        newBlock.hash = newBlock.calculateHash();
+        newBlock.mineBlock();
         // chain配列にpush
         this.chain.push(newBlock);
     }
@@ -47,11 +53,11 @@ class Blockchain {
         for (let i = 1; i < this.chain.length; i++) {  // 最初のブロックはジェネシスブロックであり検証の必要がないため次のブロックから検証を開始
             const currentBlock = this.chain[i]; // 現在のブロック
             const previousBlock = this.chain[i - 1]; // 1つ前のブロック
-            // 現在のハッシュ値と、ハッシュを再度計算たものを比べ、値が変わっていないか確認
+            // 現在のブロックのハッシュ値と、ハッシュを再度計算したものを比べ、値が変わっていないか確認
             if (currentBlock.hash !== currentBlock.calculateHash()) {
                 return false;
             }
-            // currentBlock.previousHashとpreviousBlock.hashを比較し、値が違わないか確認
+            // currentBlock.previousHash(現在のブロックに含まれる1つ前のハッシュ)とpreviousBlock.hash(1つ前のブロックのハッシュ)を比較し、値が違わないか確認
             if (currentBlock.previousHash !== previousBlock.hash) {
                 return false;
             }
@@ -65,7 +71,7 @@ let originalCoin = new Blockchain();
 originalCoin.addBlock(new Block("06/02/2019", {SendCoinToA : 3}));
 originalCoin.addBlock(new Block("07/03/2019", {SendCoinToB : 8}));
 
-originalCoin.chain[1].data = { SendCoinToA: 3 };
+originalCoin.chain[1].data = { SendCoinToA: 200 };
 
 console.log('ブロックの中身を書き換えた状態:' + originalCoin.isChainValid());
 
