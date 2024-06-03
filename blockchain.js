@@ -4,12 +4,21 @@ const SHA256 = require('crypto-js/sha256');
 // プロトタイプ作成と同時に考える
 // 使用するプラットフォームについても考える、 Ethereumなどを使うことを考えておく
 
+// トランザクションクラスの作成
+class Transaction {
+    constructor(senderAddress, recipientAddress, amount) {
+        this.senderAddress = senderAddress;
+        this.recipientAddress = recipientAddress;
+        this.amount = amount;
+    }
+}
+
 // ブロックを作成
 class Block {
-    constructor(timestamp, data, previousHash) {
+    constructor(timestamp, transactions, previousHash) {
         // 以下でブロック内に必要なタイムスタンプ、取引データ、1つ前のハッシュ、計算したハッシュ値を作成
         this.timestamp = timestamp;
-        this.data = data;
+        this.transactions = transactions;
         this.previousHash = previousHash;
         this.hash = this.calculateHash();
         this.nonce = 0; // NONCE(一度だけ使われる番号)、ブロックにNONCEの値を入れてこの値を変化させることでブロックの頭に0がくるハッシュ値を探す
@@ -17,7 +26,7 @@ class Block {
     // ハッシュ値を計算するためのメソッド
     // dataは配列データのためJSONを使用
     calculateHash() {
-        return SHA256(this.previousHash + this.timestamp + JSON.stringify(this.data) + this.nonce).toString();
+        return SHA256(this.previousHash + this.timestamp + JSON.stringify(this.transactions) + this.nonce).toString();
     }
     mineBlock() {
         // ここではハッシュ値の頭に0が2つ来ることがマイニングの条件であるため以下のように記述
@@ -32,11 +41,14 @@ class Block {
 // Blockchainクラスを作成
 class Blockchain {
     constructor() {
-        this.chain = [this.createGenesisBlock()];
+        this.chain = [this.createGenesisBlock()]; 
+        // 承認前のトランザクションを格納する配列
+        this.pendingTransactions = [];
+        this.miningReward = 12.5;
     }
     // ジェネシスブロック(一番最初のブロック)を作成するメソッド
     createGenesisBlock(){
-        return new Block ("01/01/2019", "GenesisBlock", "0");
+        return new Block ("05/02/2019", [], "0");
     }
     // 1つ前のブロックのハッシュ値を取得するメソッド
     getLatestBlock() {
@@ -44,10 +56,14 @@ class Blockchain {
         return this.chain[this.chain.length - 1];
     }
     // ブロックを追加していくメソッド
-    addBlock(newBlock) {
-        newBlock.mineBlock();
-        // chain配列にpush
-        this.chain.push(newBlock);
+    minePendingTransactions(miningRewardAddress) {
+        let block = new Block(Date.now(), this.pendingTransactions, this.getLatestBlock().hash);
+        block.mineBlock();
+        console.log('ブロックが正常にマイニングされました');
+        this.chain.push(block);
+        this.pendingTransactions = [
+            new Transaction(null, miningRewardAddress, this.miningReward)
+        ];
     }
     isChainValid() {
         for (let i = 1; i < this.chain.length; i++) {  // 最初のブロックはジェネシスブロックであり検証の必要がないため次のブロックから検証を開始
@@ -64,24 +80,49 @@ class Blockchain {
         }
         return true;
     }
+    createTransaction(transaction) {
+        this.pendingTransactions.push(transaction);
+    }
+    getBalanceOfAddress(address) {
+        //STEP2 初期の残高は0
+        let balance = 0;
+        //STEP3 for文で、chainに含まれるブロックの数をループさせる
+        for (const block of this.chain) {
+            //STEP4 さらにfor文で、ブロック内のトランザクションのデータの個数文をループさせる
+            for (const trans of block.transactions) {
+                //STEP5 もしaddressが送金アドレス(this.senderAddress)の場合は、残高から金額分をマイナス
+                if (trans.senderAddress === address) {
+                    balance -= trans.amount;
+                }
+                //STEP6 もしaddressが受け取りアドレス(this.recipientAddress)の場合は、残高から金額分をプラス
+                if (trans.recipientAddress === address) {
+                    balance += trans.amount;
+                }
+            }
+        }
+        //STEP7 最後に、残高を返す
+        return balance;
+    }
 }
 
 let originalCoin = new Blockchain();
 
-originalCoin.addBlock(new Block("06/02/2019", {SendCoinToA : 3}));
-originalCoin.addBlock(new Block("07/03/2019", {SendCoinToB : 8}));
+originalCoin.createTransaction(new Transaction(null, 'your-address', 12.5));
 
-originalCoin.chain[1].data = { SendCoinToA: 200 };
+// アドレス1から自分のアドレスに10コインを送金
+originalCoin.createTransaction(new Transaction('address1', 'your-address', 10));
 
-console.log('ブロックの中身を書き換えた状態:' + originalCoin.isChainValid());
+// 自分のアドレスからアドレス2に2コインを送金
+originalCoin.createTransaction(new Transaction('your-address', 'address2', 2));
 
-//STEP1 ブロックのデータを書き換えた状態で、更にハッシュ値を再計算する
-originalCoin.chain[1].hash = originalCoin.chain[1].calculateHash();
+console.log('\n マイニングを開始');
+originalCoin.minePendingTransactions('your-address');
 
-//STEP2 上のSTEP2の記述(ブロックの中身の出力)をここに移動させる
-console.log(JSON.stringify(originalCoin, null, 2));
+console.log('\n あなたのアドレス残高は', originalCoin.getBalanceOfAddress('your-address'));
 
-//STEP3 再度ブロックチェーンの妥当性をチェックしてみる
-console.log('ハッシュ値を再計算した場合:' + originalCoin.isChainValid());
+// 再度マイニング
+console.log('\n マイニングを再度実行');
+originalCoin.minePendingTransactions('your-address');
 
-
+// 残高計算の記述
+console.log('\n あなたのアドレスの残高は', originalCoin.getBalanceOfAddress('your-address'));
