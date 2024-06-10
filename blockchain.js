@@ -120,9 +120,11 @@ originalCoin.minePendingTransactions('your-address');
 
 console.log('\n あなたのアドレス残高は', originalCoin.getBalanceOfAddress('your-address'));
 
+/*
 // 再度マイニング
 console.log('\n マイニングを再度実行');
 originalCoin.minePendingTransactions('your-address');
 
 // 残高計算の記述
 console.log('\n あなたのアドレスの残高は', originalCoin.getBalanceOfAddress('your-address'));
+*/
